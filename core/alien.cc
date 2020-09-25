@@ -20,124 +20,159 @@
  * Copyright (C) 2018 Red Hat
  */
 
-#include "alien.hh"
-#include "metrics.hh"
-#include "prefetch.hh"
+#pragma once
+
+#include <atomic>
+#include <deque>
+#include <future>
+#include <memory>
+
+#include <boost/lockfree/queue.hpp>
+
+#include <seastar/core/future.hh>
+#include <seastar/core/cacheline.hh>
+#include <seastar/core/sstring.hh>
+#include <seastar/core/metrics_registration.hh>
+
+/// \file
 
 namespace seastar {
+
+class reactor;
+
+/// \brief Integration with non-seastar applications.
 namespace alien {
 
-message_queue::message_queue(reactor *to)
-  : _pending(to)
-{}
-
-void message_queue::stop() {
-    _metrics.clear();
-}
-
-void
-message_queue::lf_queue::maybe_wakeup() {
-    // see also smp_message_queue::lf_queue::maybe_wakeup()
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-    if (remote->_sleeping.load(std::memory_order_relaxed)) {
-        remote->_sleeping.store(false, std::memory_order_relaxed);
-        remote->wakeup();
+class message_queue {
+    static constexpr size_t batch_size = 128;
+    static constexpr size_t prefetch_cnt = 2;
+    struct work_item;
+    struct lf_queue_remote {
+        reactor* remote;
+    };
+    using lf_queue_base = boost::lockfree::queue<work_item*>;
+    // use inheritence to control placement order
+    struct lf_queue : lf_queue_remote, lf_queue_base {
+        lf_queue(reactor* remote)
+            : lf_queue_remote{remote}, lf_queue_base{batch_size} {}
+        void maybe_wakeup();
+    } _pending;
+    struct alignas(seastar::cache_line_size) {
+        std::atomic<size_t> value{0};
+    } _sent;
+    // keep this between two structures with statistics
+    // this makes sure that they have at least one cache line
+    // between them, so hw prefetcher will not accidentally prefetch
+    // cache line used by another cpu.
+    metrics::metric_groups _metrics;
+    struct alignas(seastar::cache_line_size) {
+        size_t _received = 0;
+        size_t _last_rcv_batch = 0;
+    };
+    struct work_item {
+        virtual ~work_item() = default;
+        virtual void process() = 0;
+    };
+    template <typename  Func>
+    struct async_work_item : work_item {
+        Func _func;
+        async_work_item(Func&& func) : _func(std::move(func)) {}
+        void process() override {
+            _func();
+        }
+    };
+    template<typename Func>
+    size_t process_queue(lf_queue& q, Func process);
+    void submit_item(std::unique_ptr<work_item> wi);
+public:
+    message_queue(reactor *to);
+    void start();
+    void stop();
+    template <typename Func>
+    void submit(Func&& func) {
+        auto wi = std::make_unique<async_work_item<Func>>(std::forward<Func>(func));
+        submit_item(std::move(wi));
     }
+    size_t process_incoming();
+    bool pure_poll_rx() const;
+};
+
+class smp {
+    struct qs_deleter {
+        unsigned count;
+        qs_deleter(unsigned n = 0) : count(n) {}
+        qs_deleter(const qs_deleter& d) : count(d.count) {}
+        void operator()(message_queue* qs) const;
+    };
+    using qs = std::unique_ptr<message_queue[], qs_deleter>;
+public:
+    static qs create_qs(const std::vector<reactor*>& reactors);
+    static qs _qs;
+    static bool poll_queues();
+    static bool pure_poll_queues();
+};
+
+/// Runs a function on a remote shard from an alien thread where engine() is not available.
+///
+/// \param shard designates the shard to run the function on
+/// \param func a callable to run on shard \c t.  If \c func is a temporary object,
+///          its lifetime will be extended by moving it.  If @func is a reference,
+///          the caller must guarantee that it will survive the call.
+/// \note the func must not throw and should return \c void. as we cannot identify the
+///          alien thread, hence we are not able to post the fulfilled promise to the
+///          message queue managed by the shard executing the alien thread which is
+///          interested to the return value. Please use \c submit_to() instead, if
+///          \c func throws.
+template <typename Func>
+void run_on(unsigned shard, Func func) {
+    smp::_qs[shard].submit(std::move(func));
 }
 
-void message_queue::submit_item(std::unique_ptr<message_queue::work_item> item) {
-    if (!_pending.push(item.get())) {
-        throw std::bad_alloc();
-    }
-    item.release();
-    _pending.maybe_wakeup();
-    ++_sent.value;
-}
-
-bool message_queue::pure_poll_rx() const {
-    return !_pending.empty();
-}
-
+namespace internal {
 template<typename Func>
-size_t message_queue::process_queue(lf_queue& q, Func process) {
-    // copy batch to local memory in order to minimize
-    // time in which cross-cpu data is accessed
-    work_item* wi;
-    if (!q.pop(wi)) {
-        return 0;
-    }
-    work_item* items[batch_size];
-    // start prefetch first item before popping the rest to overlap memory
-    // access with potential cache miss the second pop may cause
-    prefetch<2>(wi);
-    size_t nr = 0;
-    while (nr < batch_size && q.pop(items[nr])) {
-        ++nr;
-    }
-    std::fill(std::begin(items) + nr, std::begin(items) + nr + prefetch_cnt, nr ? items[nr - 1] : wi);
-    unsigned i = 0;
-    do {
-        prefetch_n<2>(std::begin(items) + i, std::begin(items) + i + prefetch_cnt);
-        process(wi);
-        wi = items[i++];
-    } while (i <= nr);
+using return_tuple_t = typename futurize_t<std::result_of_t<Func()>>::value_type;
 
-    return nr + 1;
+template<typename Func,
+         bool = std::is_empty<return_tuple_t<Func>>::value>
+struct return_type_of {
+    using type = void;
+    static void set(std::promise<void>& p, std::tuple<>&&) {
+        p.set_value();
+    }
+};
+template<typename Func>
+struct return_type_of<Func, false> {
+    using type = std::tuple_element_t<0, return_tuple_t<Func>>;
+    static void set(std::promise<type>& p, std::tuple<type>&& t) {
+        p.set_value(std::get<0>(std::move(t)));
+    }
+};
+template <typename Func> using return_type_t = typename return_type_of<Func>::type;
 }
 
-size_t message_queue::process_incoming() {
-    if (_pending.empty()) {
-        return 0;
-    }
-    auto nr = process_queue(_pending, [this] (work_item* wi) {
-        wi->process();
-        delete wi;
+/// Runs a function on a remote shard from an alien thread where engine() is not available.
+///
+/// \param shard designates the shard to run the function on
+/// \param func a callable to run on \c shard.  If \c func is a temporary object,
+///          its lifetime will be extended by moving it.  If \c func is a reference,
+///          the caller must guarantee that it will survive the call.
+/// \return whatever \c func returns, as a \c std::future<>
+/// \note the caller must keep the returned future alive until \c func returns
+template<typename Func, typename T = internal::return_type_t<Func>>
+std::future<T> submit_to(unsigned shard, Func func) {
+    std::promise<T> pr;
+    auto fut = pr.get_future();
+    run_on(shard, [pr = std::move(pr), func = std::move(func)] () mutable {
+        // std::future returned via std::promise above.
+        (void)func().then_wrapped([pr = std::move(pr)] (auto&& result) mutable {
+            try {
+                internal::return_type_of<Func>::set(pr, result.get());
+            } catch (...) {
+                pr.set_exception(std::current_exception());
+            }
+        });
     });
-    _received += nr;
-    _last_rcv_batch = nr;
-    return nr;
-}
-
-void message_queue::start() {
-    namespace sm = seastar::metrics;
-    char instance[10];
-    std::snprintf(instance, sizeof(instance), "%u", engine().cpu_id());
-    _metrics.add_group("alien", {
-        // Absolute value of num packets in last tx batch.
-        sm::make_queue_length("receive_batch_queue_length", _last_rcv_batch, sm::description("Current receive batch queue length")),
-        // total_operations value:DERIVE:0:U
-        sm::make_derive("total_received_messages", _received, sm::description("Total number of received messages")),
-        // total_operations value:DERIVE:0:U
-        sm::make_derive("total_sent_messages", [this] { return _sent.value.load(); }, sm::description("Total number of sent messages")),
-    });
-}
-
-
-void smp::qs_deleter::operator()(alien::message_queue* qs) const {
-    for (unsigned i = 0; i < count; i++) {
-        qs[i].~message_queue();
-    }
-    ::operator delete[](qs);
-}
-
-smp::qs smp::_qs;
-
-smp::qs smp::create_qs(const std::vector<reactor*>& reactors) {
-    auto queues = reinterpret_cast<alien::message_queue*>(operator new[] (sizeof(alien::message_queue) * reactors.size()));
-    for (unsigned i = 0; i < reactors.size(); i++) {
-        new (&queues[i]) alien::message_queue(reactors[i]);
-    }
-    return qs{queues, smp::qs_deleter{static_cast<unsigned>(reactors.size())}};
-}
-
-bool smp::poll_queues() {
-    auto& queue = _qs[engine().cpu_id()];
-    return queue.process_incoming() != 0;
-}
-
-bool smp::pure_poll_queues() {
-    auto& queue = _qs[engine().cpu_id()];
-    return queue.pure_poll_rx();
+    return fut;
 }
 
 }
