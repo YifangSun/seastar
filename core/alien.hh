@@ -29,20 +29,22 @@
 
 #include <boost/lockfree/queue.hpp>
 
-#include "cacheline.hh"
-#include "sstring.hh"
-#include "metrics_registration.hh"
-#include "reactor.hh"
+#include <seastar/core/future.hh>
+#include <seastar/core/cacheline.hh>
+#include <seastar/core/sstring.hh>
+#include <seastar/core/metrics_registration.hh>
 
 /// \file
 
 namespace seastar {
 
+class reactor;
+
 /// \brief Integration with non-seastar applications.
 namespace alien {
 
 class message_queue {
-    static constexpr size_t batch_size = 1024;
+    static constexpr size_t batch_size = 128;
     static constexpr size_t prefetch_cnt = 2;
     struct work_item;
     struct lf_queue_remote {
@@ -161,7 +163,8 @@ std::future<T> submit_to(unsigned shard, Func func) {
     std::promise<T> pr;
     auto fut = pr.get_future();
     run_on(shard, [pr = std::move(pr), func = std::move(func)] () mutable {
-        func().then_wrapped([pr = std::move(pr)] (auto&& result) mutable {
+        // std::future returned via std::promise above.
+        (void)func().then_wrapped([pr = std::move(pr)] (auto&& result) mutable {
             try {
                 internal::return_type_of<Func>::set(pr, result.get());
             } catch (...) {
