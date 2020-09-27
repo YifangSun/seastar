@@ -20,9 +20,10 @@
  * Copyright (C) 2018 Red Hat
  */
 
-#include "alien.hh"
-#include "metrics.hh"
-#include "prefetch.hh"
+#include <seastar/core/alien.hh>
+#include <seastar/core/reactor.hh>
+#include <seastar/core/metrics.hh>
+#include <seastar/core/prefetch.hh>
 
 namespace seastar {
 namespace alien {
@@ -66,8 +67,8 @@ size_t message_queue::process_queue(lf_queue& q, Func process) {
     if (!q.pop(wi)) {
         return 0;
     }
-    work_item* items[batch_size];
-    // start prefetch first item before popping the rest to overlap memory
+    work_item* items[batch_size + prefetch_cnt];
+    // start prefetching first item before popping the rest to overlap memory
     // access with potential cache miss the second pop may cause
     prefetch<2>(wi);
     size_t nr = 0;
@@ -89,7 +90,7 @@ size_t message_queue::process_incoming() {
     if (_pending.empty()) {
         return 0;
     }
-    auto nr = process_queue(_pending, [this] (work_item* wi) {
+    auto nr = process_queue(_pending, [] (work_item* wi) {
         wi->process();
         delete wi;
     });
@@ -101,7 +102,7 @@ size_t message_queue::process_incoming() {
 void message_queue::start() {
     namespace sm = seastar::metrics;
     char instance[10];
-    std::snprintf(instance, sizeof(instance), "%u", engine().cpu_id());
+    std::snprintf(instance, sizeof(instance), "%u", this_shard_id());
     _metrics.add_group("alien", {
         // Absolute value of num packets in last tx batch.
         sm::make_queue_length("receive_batch_queue_length", _last_rcv_batch, sm::description("Current receive batch queue length")),
@@ -131,12 +132,12 @@ smp::qs smp::create_qs(const std::vector<reactor*>& reactors) {
 }
 
 bool smp::poll_queues() {
-    auto& queue = _qs[engine().cpu_id()];
+    auto& queue = _qs[this_shard_id()];
     return queue.process_incoming() != 0;
 }
 
 bool smp::pure_poll_queues() {
-    auto& queue = _qs[engine().cpu_id()];
+    auto& queue = _qs[this_shard_id()];
     return queue.pure_poll_rx();
 }
 
