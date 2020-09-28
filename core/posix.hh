@@ -19,10 +19,10 @@
  * Copyright (C) 2016 ScyllaDB
  */
 
-#ifndef FILE_DESC_HH_
-#define FILE_DESC_HH_
+#pragma once
 
-#include "sstring.hh"
+#include <seastar/core/sstring.hh>
+#include "abort_on_ebadf.hh"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -44,7 +44,8 @@
 #include <chrono>
 #include <sys/uio.h>
 
-#include "net/socket_defs.hh"
+#include <seastar/net/socket_defs.hh>
+#include <seastar/util/std-compat.hh>
 
 namespace seastar {
 
@@ -95,6 +96,11 @@ public:
         _fd = -1;
     }
     int get() const { return _fd; }
+
+    static file_desc from_fd(int fd) {
+        return file_desc(fd);
+    }
+
     static file_desc open(sstring name, int flags, mode_t mode = 0) {
         int fd = ::open(name.c_str(), flags, mode);
         throw_system_error_on(fd == -1, "open");
@@ -126,8 +132,18 @@ public:
         throw_system_error_on(fd == -1, "dup");
         return file_desc(fd);
     }
-    file_desc accept(sockaddr& sa, socklen_t& sl, int flags = 0) {
-        auto ret = ::accept4(_fd, &sa, &sl, flags);
+    file_desc accept(socket_address& sa, int flags = 0) {
+        auto ret = ::accept4(_fd, &sa.as_posix_sockaddr(), &sa.addr_length, flags);
+        throw_system_error_on(ret == -1, "accept4");
+        return file_desc(ret);
+    }
+    static file_desc inotify_init(int flags);
+    // return nullopt if no connection is availbale to be accepted
+    compat::optional<file_desc> try_accept(socket_address& sa, int flags = 0) {
+        auto ret = ::accept4(_fd, &sa.as_posix_sockaddr(), &sa.addr_length, flags);
+        if (ret == -1 && errno == EAGAIN) {
+            return {};
+        }
         throw_system_error_on(ret == -1, "accept4");
         return file_desc(ret);
     }
@@ -230,7 +246,7 @@ public:
         return { size_t(r) };
     }
     boost::optional<size_t> sendto(socket_address& addr, const void* buf, size_t len, int flags) {
-        auto r = ::sendto(_fd, buf, len, flags, &addr.u.sa, sizeof(addr.u.sas));
+        auto r = ::sendto(_fd, buf, len, flags, &addr.u.sa, addr.length());
         if (r == -1 && errno == EAGAIN) {
             return {};
         }
@@ -258,8 +274,7 @@ public:
     }
     socket_address get_address() {
         socket_address addr;
-        auto len = (socklen_t) sizeof(addr.u.sas);
-        auto r = ::getsockname(_fd, &addr.u.sa, &len);
+        auto r = ::getsockname(_fd, &addr.u.sa, &addr.addr_length);
         throw_system_error_on(r == -1, "getsockname");
         return addr;
     }
@@ -408,8 +423,9 @@ public:
 inline
 void throw_system_error_on(bool condition, const char* what_arg) {
     if (condition) {
-        std::cerr << "seastar throw system errno:" << errno
-                  << ", details:" << what_arg << std::endl;
+        if ((errno == EBADF || errno == ENOTSOCK) && is_abort_on_ebadf_enabled()) {
+            abort();
+        }
         throw std::system_error(errno, std::system_category(), what_arg);
     }
 }
@@ -419,7 +435,10 @@ inline
 void throw_kernel_error(T r) {
     static_assert(std::is_signed<T>::value, "kernel error variables must be signed");
     if (r < 0) {
-        std::cerr << "seastar throw kernel error:" << std::endl;
+        auto ec = -r;
+        if ((ec == EBADF || ec == ENOTSOCK) && is_abort_on_ebadf_enabled()) {
+            abort();
+        }
         throw std::system_error(-r, std::system_category());
     }
 }
@@ -428,7 +447,6 @@ template <typename T>
 inline
 void throw_pthread_error(T r) {
     if (r != 0) {
-        std::cerr << "seastar throw thread errno:" << std::endl;
         throw std::system_error(r, std::system_category());
     }
 }
@@ -462,10 +480,9 @@ void pin_this_thread(unsigned cpu_id) {
     CPU_SET(cpu_id, &cs);
     auto r = pthread_setaffinity_np(pthread_self(), sizeof(cs), &cs);
     assert(r == 0);
+    (void)r;
 }
 
 /// @}
 
 }
-
-#endif /* FILE_DESC_HH_ */
