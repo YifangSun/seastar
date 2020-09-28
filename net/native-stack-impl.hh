@@ -19,11 +19,11 @@
  * Copyright (C) 2014 Cloudius Systems, Ltd.
  */
 
-#ifndef NET_NATIVE_STACK_IMPL_HH_
-#define NET_NATIVE_STACK_IMPL_HH_
+#pragma once
 
-#include "core/reactor.hh"
-#include "stack.hh"
+#include <seastar/net/stack.hh>
+#include <iostream>
+#include <seastar/net/inet_address.hh>
 
 namespace seastar {
 
@@ -45,8 +45,9 @@ class native_server_socket_impl : public server_socket_impl {
     typename Protocol::listener _listener;
 public:
     native_server_socket_impl(Protocol& proto, uint16_t port, listen_options opt);
-    virtual future<connected_socket, socket_address> accept() override;
+    virtual future<accept_result> accept() override;
     virtual void abort_accept() override;
+    virtual socket_address local_address() const override;
 };
 
 template <typename Protocol>
@@ -55,12 +56,17 @@ native_server_socket_impl<Protocol>::native_server_socket_impl(Protocol& proto, 
 }
 
 template <typename Protocol>
-future<connected_socket, socket_address>
+future<accept_result>
 native_server_socket_impl<Protocol>::accept() {
     return _listener.accept().then([] (typename Protocol::connection conn) {
-        return make_ready_future<connected_socket, socket_address>(
+        // Save "conn" contents before call below function
+        // "conn" is moved in 1st argument, and used in 2nd argument
+        // It causes trouble on Arm which passes arguments from left to right
+        auto ip = conn.foreign_ip().ip;
+        auto port = conn.foreign_port();
+        return make_ready_future<accept_result>(accept_result{
                 connected_socket(std::make_unique<native_connected_socket_impl<Protocol>>(make_lw_shared(std::move(conn)))),
-                make_ipv4_address(conn.foreign_ip().ip, conn.foreign_port()));
+                make_ipv4_address(ip, port)});
     });
 }
 
@@ -68,6 +74,11 @@ template <typename Protocol>
 void
 native_server_socket_impl<Protocol>::abort_accept() {
     _listener.abort_accept();
+}
+
+template <typename Protocol>
+socket_address native_server_socket_impl<Protocol>::local_address() const {
+    return socket_address(_listener.get_tcp().inet().inet().host_address(), _listener.port());
 }
 
 // native_connected_socket_impl
@@ -113,6 +124,16 @@ public:
         });
     }
 
+    virtual void set_reuseaddr(bool reuseaddr) override {
+        // FIXME: implement
+        std::cerr << "Reuseaddr is not supported by native stack" << std::endl;
+    }
+
+    virtual bool get_reuseaddr() const override {
+        // FIXME: implement
+        return false;
+    }
+
     virtual void shutdown() override {
         if (_conn) {
             _conn->shutdown_connect();
@@ -148,12 +169,6 @@ public:
             return get();
         });
     }
-
-    virtual future<size_t> get(char* user_buf, size_t n) override {
-        // not impl
-        return make_ready_future<size_t>(0);
-    }
-
     future<> close() override {
         _conn->close_write();
         return make_ready_future<>();
@@ -168,6 +183,7 @@ class native_connected_socket_impl<Protocol>::native_data_sink_impl final
 public:
     explicit native_data_sink_impl(lw_shared_ptr<connection_type> conn)
         : _conn(std::move(conn)) {}
+    using data_sink_impl::put;
     virtual future<> put(packet p) override {
         return _conn->send(std::move(p));
     }
@@ -238,5 +254,3 @@ keepalive_params native_connected_socket_impl<Protocol>::get_keepalive_parameter
 }
 
 }
-
-#endif /* NET_NATIVE_STACK_IMPL_HH_ */
