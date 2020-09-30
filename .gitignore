@@ -1,6 +1,8 @@
 .cproject
 .project
 .settings
+.idea
+cmake-build-debug
 build
 build.ninja
 cscope.*
