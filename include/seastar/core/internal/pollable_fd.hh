@@ -44,6 +44,7 @@ class buffer_allocator;
 namespace net {
 
 class packet;
+class posix_data_sink_impl;
 
 }
 
@@ -180,6 +181,7 @@ protected:
     friend class readable_eventfd;
     friend class writeable_eventfd;
     friend class aio_storage_context;
+    friend class net::posix_data_sink_impl;
 private:
     pollable_fd_state_ptr _s;
 };

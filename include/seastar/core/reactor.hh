@@ -60,6 +60,8 @@
 #include <seastar/util/eclipse.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/posix.hh>
+#include <seastar/core/packet_queue.hh>
+#include <seastar/core/channel.hh>
 #include <seastar/core/apply.hh>
 #include <seastar/core/sstring.hh>
 #include <seastar/net/api.hh>
@@ -187,7 +189,9 @@ private:
 
     class signal_pollfn;
     class batch_flush_pollfn;
+    class packet_queue_pollfn;
     class smp_pollfn;
+    class smp_alien_pollfn;
     class drain_cross_cpu_freelist_pollfn;
     class lowres_timer_pollfn;
     class manual_timer_pollfn;
@@ -199,7 +203,9 @@ private:
     class execution_stage_pollfn;
     friend signal_pollfn;
     friend batch_flush_pollfn;
+    friend packet_queue_pollfn;
     friend smp_pollfn;
+    friend smp_alien_pollfn;
     friend drain_cross_cpu_freelist_pollfn;
     friend lowres_timer_pollfn;
     friend class manual_clock;
@@ -321,6 +327,7 @@ private:
     int64_t _last_vruntime = 0;
     task_queue_list _active_task_queues;
     task_queue_list _activating_task_queues;
+    packet_queue* _packet_queue;
     task_queue* _at_destroy_tasks;
     sched_clock::duration _task_quota;
     /// Handler that will be called when there is no task to execute on cpu.
@@ -583,6 +590,57 @@ public:
         }
     }
 
+    packet_queue* get_packet_queue() {
+        return _packet_queue;
+    }
+
+    future<> flush_packet_queue(bool& pollable) {
+        pollable = false;
+
+        user_packet* item = nullptr;
+        if (!_packet_queue->try_dequeue_bulk(&item)) {
+            return make_ready_future();
+        }
+        channel* chan = item->_channel;
+
+        pollable = true;
+        output_stream<char>* out = chan->get_output_stream();
+
+        return out->write(net::packet(item->_fragments,
+                                      make_deleter(seastar::deleter(), [item](){
+                                          item->_done();
+                                          delete item;
+                                      })
+        )).then([this, out]() {
+            return out->flush().then([] {
+                return seastar::make_ready_future<>();
+            });
+        }).then_wrapped([this, out, chan] (auto&& f) {
+            try {
+                f.get();
+                return seastar::make_ready_future<>();
+            } catch (...) {
+                // disconnect when exception
+                std::cerr << "Write error, disconnect the connection." << std::endl;
+                chan->set_channel_broken();
+
+                // ev_del is a param that will be ignored by EPOLL_CTL_DEL
+                // so the last param in epoll_ctl can be null, but
+                // in kernel versions before 2.6.9, the EPOLL_CTL_DEL operation required
+                // a non-null pointer in event, even though this argument is ignored.
+                // so we use a empty param here.
+                struct epoll_event ev_del;
+                if (epoll_ctl(_backend.get_fd(), EPOLL_CTL_DEL, out->get_fd(), &ev_del) < 0) {
+                    std::cerr << "Epoll delete fd error." << std::endl;
+                    return make_ready_future();
+                }
+                close(out->get_fd());
+
+                return make_ready_future();
+            }
+        });
+    }
+
     /// Set a handler that will be called when there is no task to execute on cpu.
     /// Handler should do a low priority work.
     /// 
@@ -604,6 +662,7 @@ public:
     shard_id cpu_id() const;
 
     void sleep();
+    void maybe_wakeup();
 
     steady_clock_type::duration total_idle_time();
     steady_clock_type::duration total_busy_time();
@@ -759,5 +818,21 @@ inline int hrtimer_signal() {
 
 
 extern logger seastar_logger;
+
+class connection_close_exception : public std::exception {
+public:
+    connection_close_exception() {}
+    virtual const char* what() const throw () {
+        return "Remote connection is closed.";
+    }
+};
+
+#define CHECK_CONNECTION_CLOSE(size)          \
+do {                                          \
+if (size == 0) {                              \
+  return seastar::make_exception_future<>(    \
+      seastar::connection_close_exception()); \
+}                                             \
+} while(0)
 
 }

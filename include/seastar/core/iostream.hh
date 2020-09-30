@@ -39,6 +39,7 @@
 #include <seastar/core/temporary_buffer.hh>
 #include <seastar/core/scattered_message.hh>
 #include <seastar/util/std-compat.hh>
+#include <seastar/util/rwlock.hh>
 
 namespace seastar {
 
@@ -50,6 +51,21 @@ public:
     virtual future<temporary_buffer<char>> get() = 0;
     virtual future<temporary_buffer<char>> skip(uint64_t n);
     virtual future<> close() { return make_ready_future<>(); }
+    virtual future<size_t> get(char* user_buf, size_t n) {
+        assert(false);
+        return make_ready_future<size_t>(0);
+    }
+    virtual future<temporary_buffer<char>> get(size_t hint, char* user_buf) {
+        return make_ready_future<temporary_buffer<char>>(temporary_buffer<char>());
+    }
+    virtual size_t get_read_data_size() {
+        return _read_data_size;
+    }
+    virtual void reset_read_data_size() {
+        _read_data_size = 0;
+    }
+protected:
+    size_t _read_data_size;
 };
 
 class data_source {
@@ -64,6 +80,9 @@ public:
     future<temporary_buffer<char>> get() { return _dsi->get(); }
     future<temporary_buffer<char>> skip(uint64_t n) { return _dsi->skip(n); }
     future<> close() { return _dsi->close(); }
+    future<temporary_buffer<char>> get(size_t hint, char* user_buf) { return _dsi->get(hint, user_buf); }
+    size_t get_read_data_size() { return _dsi->get_read_data_size(); }
+    void reset_read_data_size() { _dsi->reset_read_data_size(); }
 };
 
 class data_sink_impl {
@@ -88,6 +107,10 @@ public:
         return make_ready_future<>();
     }
     virtual future<> close() = 0;
+    virtual int get_fd() {
+        // not implememted, reserve api
+        return -1;
+    }
 };
 
 class data_sink {
@@ -113,6 +136,7 @@ public:
         return _dsi->flush();
     }
     future<> close() { return _dsi->close(); }
+    int get_fd() { return _dsi->get_fd(); }
 };
 
 struct continue_consuming {};
@@ -218,6 +242,7 @@ public:
     input_stream(input_stream&&) = default;
     input_stream& operator=(input_stream&&) = default;
     future<temporary_buffer<CharType>> read_exactly(size_t n);
+    future<size_t> read_exactly(CharType* user_buf, size_t n);
     template <typename Consumer>
     SEASTAR_CONCEPT(requires InputStreamConsumer<Consumer, CharType> || ObsoleteInputStreamConsumer<Consumer, CharType>)
     future<> consume(Consumer&& c);
@@ -225,6 +250,7 @@ public:
     SEASTAR_CONCEPT(requires InputStreamConsumer<Consumer, CharType> || ObsoleteInputStreamConsumer<Consumer, CharType>)
     future<> consume(Consumer& c);
     bool eof() const { return _eof; }
+    future<size_t> read_exactly_into(CharType* user_buf, size_t n);
     /// Returns some data from the stream, or an empty buffer on end of
     /// stream.
     future<tmp_buf> read();
@@ -288,12 +314,13 @@ class output_stream final {
     bool _flush = false;
     bool _flushing = false;
     std::exception_ptr _ex;
+    rwlock _lock;
 private:
     size_t available() const { return _end - _begin; }
     size_t possibly_available() const { return _size - _begin; }
     future<> split_and_put(temporary_buffer<CharType> buf);
     future<> put(temporary_buffer<CharType> buf);
-    void poll_flush();
+    void poll_flush(bool one_more_flush= false);
     future<> zero_copy_put(net::packet p);
     future<> zero_copy_split_and_put(net::packet p);
     [[gnu::noinline]]
@@ -335,6 +362,9 @@ public:
     ///
     /// \returns the data_sink
     data_sink detach() &&;
+
+    /// get file fd
+    int get_fd();
 private:
     friend class reactor;
 };

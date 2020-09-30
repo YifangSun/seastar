@@ -116,6 +116,8 @@ public:
             : _buffer_allocator(allocator), _fd(std::move(fd)), _config(config) {
     }
     future<temporary_buffer<char>> get() override;
+    future<size_t> get(char* user_buf, size_t n) override;
+    future<temporary_buffer<char>> get(size_t hint, char* user_buf) override;
     future<> close() override;
 };
 
@@ -128,6 +130,7 @@ public:
     future<> put(packet p) override;
     future<> put(temporary_buffer<char> buf) override;
     future<> close() override;
+    int get_fd() override;
 };
 
 class posix_ap_server_socket_impl : public server_socket_impl {

@@ -539,6 +539,30 @@ posix_ap_server_socket_impl::move_connected_socket(int protocol, socket_address 
     }
 }
 
+// 'hint' is the total bytes we need, if the 'hint' is
+// greater or equal to 'buf_size', we can read the data
+// to 'user_buf' directly from kernel. And if the last
+// several bytes less than 'buf_size', we must read the
+// data to '_buf'.
+future<temporary_buffer<char>>
+posix_data_source_impl::get(size_t hint, char* user_buf) {
+    if (hint >= _config.buffer_size) {
+        return _fd.read_some(user_buf, hint).then([this] (size_t size) {
+            _read_data_size = size;
+            return make_ready_future<temporary_buffer<char>>(std::move(temporary_buffer<char>()));
+        });
+    } else {
+        return _fd->read_some(static_cast<internal::buffer_allocator*>(this));
+    }
+}
+
+future<size_t>
+posix_data_source_impl::get(char* user_buf, size_t n) {
+    return _fd.read_some(user_buf, n).then([this] (size_t size) {
+        return make_ready_future<size_t>(size);
+    });
+}
+
 future<temporary_buffer<char>>
 posix_data_source_impl::get() {
     return _fd.read_some(static_cast<internal::buffer_allocator*>(this)).then([this] (temporary_buffer<char> b) {
@@ -596,6 +620,11 @@ future<>
 posix_data_sink_impl::close() {
     _fd.shutdown(SHUT_WR);
     return make_ready_future<>();
+}
+
+int
+posix_data_sink_impl::get_fd() {
+    return _fd.get_fd();
 }
 
 posix_network_stack::posix_network_stack(boost::program_options::variables_map opts, compat::polymorphic_allocator<char>* allocator)

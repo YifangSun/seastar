@@ -638,6 +638,11 @@ void reactor_backend_epoll::arm_highres_timer(const ::itimerspec& its) {
     throw_system_error_on(ret == -1);
 }
 
+int
+reactor_backend_epoll::get_fd() {
+    return _epollfd.get();
+}
+
 bool
 reactor_backend_epoll::wait_and_process(int timeout, const sigset_t* active_sigmask) {
     std::array<epoll_event, 128> eevt;
@@ -872,6 +877,11 @@ reactor_backend_osv::reap_kernel_completions() {
 }
 
 reactor_backend_osv::kernel_submit_work() {
+}
+
+int
+reactor_backend_osv::get_fd() {
+    return -1;
 }
 
 void

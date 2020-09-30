@@ -425,6 +425,7 @@ private:
     static void create_thread(std::function<void ()> thread_loop);
 public:
     static unsigned count;
+    static bool poll_mode;
 };
 
 }

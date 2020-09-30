@@ -286,6 +286,8 @@ reactor::do_read_some(pollable_fd_state& fd, internal::buffer_allocator* ba) {
             fd.speculate_epoll(EPOLLIN);
         }
         buffer.trim(*r);
+        net::posix_data_source_impl* dsi = static_cast<net::posix_data_source_impl*>(ba);
+        dsi->_read_data_size = size_t(*r);
         return make_ready_future<temporary_buffer<char>>(std::move(buffer));
     });
 }
@@ -897,6 +899,7 @@ reactor::reactor(unsigned id, reactor_backend_selector rbs, reactor_config cfg)
      */
     _backend = rbs.create(this);
     *internal::get_scheduling_group_specific_thread_local_data_ptr() = &_scheduling_group_specific_data;
+    _packet_queue = new packet_queue(this);
     _task_queues.push_back(std::make_unique<task_queue>(0, "main", 1000));
     _task_queues.push_back(std::make_unique<task_queue>(1, "atexit", 1000));
     _at_destroy_tasks = _task_queues.back().get();
@@ -927,6 +930,7 @@ reactor::~reactor() {
     auto r = ::pthread_sigmask(SIG_BLOCK, &mask, NULL);
     assert(r == 0);
 
+    delete _packet_queue;
     _backend->stop_tick();
     auto eraser = [](auto& list) {
         while (!list.empty()) {
@@ -1319,6 +1323,7 @@ void reactor::configure(boost::program_options::variables_map vm) {
     _max_task_backlog = vm["max-task-backlog"].as<unsigned>();
     _max_poll_time = vm["idle-poll-time-us"].as<unsigned>() * 1us;
     if (vm.count("poll-mode")) {
+        smp::poll_mode = true;
         _max_poll_time = std::chrono::nanoseconds::max();
     }
     if (vm.count("overprovisioned")
@@ -1365,12 +1370,12 @@ reactor::posix_listen(socket_address sa, listen_options opts) {
     if (opts.reuse_address) {
         fd.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1);
     }
-    if (_reuseport && !sa.is_af_unix())
+    if (!sa.is_af_unix())
         fd.setsockopt(SOL_SOCKET, SO_REUSEPORT, 1);
 
     try {
         fd.bind(sa.u.sa, sa.length());
-        fd.listen(opts.listen_backlog);
+        fd.listen(4096);
     } catch (const std::system_error& s) {
         throw std::system_error(s.code(), fmt::format("posix_listen failed for address {}", sa));
     }
@@ -2402,6 +2407,24 @@ public:
     }
 };
 
+// poller for alien queue
+class reactor::smp_alien_pollfn : public reactor::pollfn {
+    reactor& _r;
+public:
+    smp_alien_pollfn(reactor& r) : _r(r) {}
+    virtual bool poll() final override {
+        return alien::smp::poll_queues();
+    }
+    virtual bool pure_poll() final override {
+        return alien::smp::pure_poll_queues();
+    }
+    virtual bool try_enter_interrupt_mode() override {
+        return true;
+    }
+    virtual void exit_interrupt_mode() override final {
+    }
+};
+
 class reactor::smp_pollfn final : public reactor::pollfn {
     reactor& _r;
 public:
@@ -2452,6 +2475,52 @@ public:
         return true;
     }
     virtual void exit_interrupt_mode() override { }
+};
+
+// TODO packet_queue per connection
+class reactor::packet_queue_pollfn final : public reactor::pollfn {
+public:
+    packet_queue_pollfn(reactor& r) : _r(r), _should_poll(true) {
+        start();
+    }
+
+    virtual bool poll() final override {
+        if (_should_poll) {
+            start();
+        }
+        return false;
+    }
+
+    void start() {
+        bool pollable = false;
+        future<> f = do_poll(pollable);
+        if (pollable) {
+            _should_poll = false;
+            f.then([this]() { start(); });
+        } else {
+            _should_poll = true;
+        }
+    }
+
+    virtual bool pure_poll() override final {
+        return poll();
+    }
+
+    virtual bool try_enter_interrupt_mode() override {
+        return true;
+    }
+
+    virtual void exit_interrupt_mode() override final {
+    }
+
+private:
+    future<> do_poll(bool& pollable) {
+        return _r.flush_packet_queue(pollable);
+    }
+
+private:
+    reactor& _r;
+    bool _should_poll;
 };
 
 class reactor::syscall_pollfn final : public reactor::pollfn {
@@ -2648,14 +2717,17 @@ int reactor::run() {
     poller batch_flush_poller(std::make_unique<batch_flush_pollfn>(*this));
     poller execution_stage_poller(std::make_unique<execution_stage_pollfn>());
 
+    poller packet_queue_poller(std::make_unique<packet_queue_pollfn>(*this));
+    poller alien_queue_poller(std::make_unique<smp_alien_pollfn>(*this));
+
     start_aio_eventfd_loop();
 
-    if (_id == 0 && _cfg.auto_handle_sigint_sigterm) {
+    /*if (_id == 0 && _cfg.auto_handle_sigint_sigterm) {
        if (_handle_sigint) {
           _signals.handle_signal_once(SIGINT, [this] { stop(); });
        }
        _signals.handle_signal_once(SIGTERM, [this] { stop(); });
-    }
+    }*/
 
     // Start initialization in the background.
     // Communicate when done using _start_promise.
@@ -2789,6 +2861,26 @@ int reactor::run() {
     // instance, collectd), we will not have any way to guarantee who is destroyed first.
     my_io_queues.clear();
     return _return;
+}
+
+void
+reactor::maybe_wakeup() {
+    // poll-mode no need to check _sleeping.
+    if (smp::poll_mode) {
+        return;
+    }
+
+    // This is read-after-write, which wants memory_order_seq_cst,
+    // but we insert that barrier using systemwide_memory_barrier()
+    // because seq_cst is so expensive.
+    //
+    // However, we do need a compiler barrier:
+    std::atomic_signal_fence(std::memory_order_seq_cst);
+    if (_sleeping.load(std::memory_order_relaxed)) {
+        // We are free to clear it, because we're sending a signal now
+        _sleeping.store(false, std::memory_order_relaxed);
+        wakeup();
+    }
 }
 
 void
@@ -3473,6 +3565,10 @@ static void sigabrt_action() noexcept {
     print_with_backtrace("Aborting");
 }
 
+static void siguser_action() noexcept {
+    print_with_backtrace("write queue is waking up");
+}
+
 void smp::qs_deleter::operator()(smp_message_queue** qs) const {
     for (unsigned i = 0; i < smp::count; i++) {
         for (unsigned j = 0; j < smp::count; j++) {
@@ -3637,6 +3733,16 @@ void smp::register_network_stacks() {
     register_native_stack();
 }
 
+void smp::qs_deleter::operator()(smp_message_queue** qs) const {
+    for (unsigned i = 0; i < smp::count; i++) {
+        for (unsigned j = 0; j < smp::count; j++) {
+            qs[i][j].~smp_message_queue();
+        }
+        ::operator delete[](qs[i]);
+    }
+    delete[](qs);
+}
+
 void smp::configure(boost::program_options::variables_map configuration, reactor_config reactor_cfg)
 {
 #ifndef SEASTAR_NO_EXCEPTION_HACK
@@ -3652,16 +3758,16 @@ void smp::configure(boost::program_options::variables_map configuration, reactor
     // We leave some signals unmasked since we don't handle them ourself.
     sigset_t sigs;
     sigfillset(&sigs);
-    for (auto sig : {SIGHUP, SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGSEGV,
+    /*for (auto sig : {SIGHUP, SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGSEGV,
             SIGALRM, SIGCONT, SIGSTOP, SIGTSTP, SIGTTIN, SIGTTOU}) {
         sigdelset(&sigs, sig);
     }
     if (!reactor_cfg.auto_handle_sigint_sigterm) {
         sigdelset(&sigs, SIGINT);
         sigdelset(&sigs, SIGTERM);
-    }
+    }*/
     pthread_sigmask(SIG_BLOCK, &sigs, nullptr);
-
+    /*
 #ifndef SEASTAR_ASAN_ENABLED
     // We don't need to handle SIGSEGV when asan is enabled.
     install_oneshot_signal_handler<SIGSEGV, sigsegv_action>();
@@ -3669,6 +3775,7 @@ void smp::configure(boost::program_options::variables_map configuration, reactor
     (void)sigsegv_action;
 #endif
     install_oneshot_signal_handler<SIGABRT, sigabrt_action>();
+    install_oneshot_signal_handler<SIGUSR2, siguser_action>();*/
 
 #ifdef SEASTAR_HAVE_DPDK
     _using_dpdk = configuration.count("dpdk-pmd");
@@ -3863,9 +3970,9 @@ void smp::configure(boost::program_options::variables_map configuration, reactor
             }
             sigset_t mask;
             sigfillset(&mask);
-            for (auto sig : { SIGSEGV }) {
+            /*for (auto sig : { SIGSEGV }) {
                 sigdelset(&mask, sig);
-            }
+            }*/
             auto r = ::pthread_sigmask(SIG_BLOCK, &mask, NULL);
             throw_pthread_error(r);
             init_default_smp_service_group(i);
@@ -3967,7 +4074,8 @@ bool smp::pure_poll_queues() {
 internal::preemption_monitor bootstrap_preemption_monitor{};
 __thread const internal::preemption_monitor* g_need_preempt = &bootstrap_preemption_monitor;
 
-__thread reactor* local_engine;
+__thread
+reactor* local_engine;
 
 void report_exception(compat::string_view message, std::exception_ptr eptr) noexcept {
     seastar_logger.error("{}: {}", message, eptr);
@@ -4363,5 +4471,6 @@ std::ostream& operator<<(std::ostream& os, const stall_report& sr) {
 }
 
 }
+
 
 }
