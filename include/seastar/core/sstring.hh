@@ -195,7 +195,7 @@ public:
             : basic_sstring(initialized_later(), std::distance(first, last)) {
         std::copy(first, last, begin());
     }
-    explicit basic_sstring(compat::basic_string_view<char_type, traits_type> v)
+    explicit basic_sstring(std::basic_string_view<char_type, traits_type> v)
             : basic_sstring(v.data(), v.size()) {
     }
     ~basic_sstring() noexcept {
@@ -473,7 +473,7 @@ public:
             return buf;
         }
     }
-    int compare(compat::basic_string_view<char_type, traits_type> x) const noexcept {
+    int compare(std::basic_string_view<char_type, traits_type> x) const noexcept {
         auto n = traits_type::compare(begin(), x.begin(), std::min(size(), x.size()));
         if (n != 0) {
             return n;
@@ -487,7 +487,7 @@ public:
         }
     }
 
-    int compare(size_t pos, size_t sz, compat::basic_string_view<char_type, traits_type> x) const {
+    int compare(size_t pos, size_t sz, std::basic_string_view<char_type, traits_type> x) const {
         if (pos > size()) {
             internal::throw_sstring_out_of_range();
         }
