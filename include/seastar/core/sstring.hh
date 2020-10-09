@@ -552,8 +552,8 @@ public:
         return str()[pos];
     }
 
-    operator compat::basic_string_view<char_type>() const {
-        return compat::basic_string_view<char_type>(str(), size());
+    operator std::basic_string_view<char_type>() const {
+        return std::basic_string_view<char_type>(str(), size());
     }
 };
 template <typename char_type, typename Size, Size max_size, bool NulTerminate>
@@ -661,7 +661,7 @@ namespace std {
 template <typename char_type, typename size_type, size_type max_size, bool NulTerminate>
 struct hash<seastar::basic_sstring<char_type, size_type, max_size, NulTerminate>> {
     size_t operator()(const seastar::basic_sstring<char_type, size_type, max_size, NulTerminate>& s) const {
-        return std::hash<seastar::compat::basic_string_view<char_type>>()(s);
+        return std::hash<seastar::std::basic_string_view<char_type>>()(s);
     }
 };
 
