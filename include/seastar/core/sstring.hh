@@ -661,7 +661,7 @@ namespace std {
 template <typename char_type, typename size_type, size_type max_size, bool NulTerminate>
 struct hash<seastar::basic_sstring<char_type, size_type, max_size, NulTerminate>> {
     size_t operator()(const seastar::basic_sstring<char_type, size_type, max_size, NulTerminate>& s) const {
-        return std::hash<seastar::std::basic_string_view<char_type>>()(s);
+        return std::hash<std::basic_string_view<char_type>>()(s);
     }
 };
 
