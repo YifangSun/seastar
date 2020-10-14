@@ -620,8 +620,6 @@ public:
                 f.get();
                 return seastar::make_ready_future<>();
             } catch (...) {
-                // disconnect when exception
-                std::cerr << "Write error, disconnect the connection." << std::endl;
                 chan->set_channel_broken();
 
                 // ev_del is a param that will be ignored by EPOLL_CTL_DEL
@@ -631,7 +629,6 @@ public:
                 // so we use a empty param here.
                 struct epoll_event ev_del;
                 if (epoll_ctl(_backend.get_fd(), EPOLL_CTL_DEL, out->get_fd(), &ev_del) < 0) {
-                    std::cerr << "Epoll delete fd error." << std::endl;
                     return make_ready_future();
                 }
                 close(out->get_fd());
