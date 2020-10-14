@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <seastar/core/reactor.hh>
 #include <seastar/core/seastar.hh>
 #include <seastar/core/iostream.hh>
 #include <seastar/core/aligned_buffer.hh>
@@ -628,7 +629,7 @@ public:
                 // a non-null pointer in event, even though this argument is ignored.
                 // so we use a empty param here.
                 struct epoll_event ev_del;
-                if (epoll_ctl(_backend.get_fd(), EPOLL_CTL_DEL, out->get_fd(), &ev_del) < 0) {
+                if (epoll_ctl(_backend->get_fd(), EPOLL_CTL_DEL, out->get_fd(), &ev_del) < 0) {
                     return make_ready_future();
                 }
                 close(out->get_fd());

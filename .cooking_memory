@@ -1,0 +1,3 @@
+run_previous() {
+    "./cooking.sh" -i c-ares -i fmt -t Release
+}
