@@ -3484,16 +3484,6 @@ static void sigabrt_action() noexcept {
     print_with_backtrace("Aborting");
 }
 
-void smp::qs_deleter::operator()(smp_message_queue** qs) const {
-    for (unsigned i = 0; i < smp::count; i++) {
-        for (unsigned j = 0; j < smp::count; j++) {
-            qs[i][j].~smp_message_queue();
-        }
-        ::operator delete[](qs[i]);
-    }
-    delete[](qs);
-}
-
 class disk_config_params {
 private:
     unsigned _num_io_queues = 0;
