@@ -39,6 +39,7 @@
 #include <seastar/core/temporary_buffer.hh>
 #include <seastar/core/scattered_message.hh>
 #include <seastar/util/std-compat.hh>
+#include <seastar/core/rwlock.hh>
 
 namespace seastar {
 
