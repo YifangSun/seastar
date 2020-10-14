@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include <seastar/core/reactor.hh>
 #include <seastar/core/seastar.hh>
 #include <seastar/core/iostream.hh>
 #include <seastar/core/aligned_buffer.hh>
 #include <seastar/core/cacheline.hh>
 #include <seastar/core/circular_buffer_fixed_capacity.hh>
 #include <seastar/core/idle_cpu_handler.hh>
+#include <seastar/core/reactor_backend.hh>
 #include <memory>
 #include <type_traits>
 #include <sys/epoll.h>
@@ -143,7 +143,6 @@ class smp;
 
 class reactor_backend_selector;
 
-class reactor_backend;
 
 namespace internal {
 
