@@ -53,7 +53,6 @@
 #include <seastar/core/scheduling_specific.hh>
 #include <seastar/util/log.hh>
 #include "core/file-impl.hh"
-#include "core/reactor_backend.hh"
 #include "core/syscall_result.hh"
 #include "core/thread_pool.hh"
 #include "syscall_work_queue.hh"
