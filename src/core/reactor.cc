@@ -3733,16 +3733,6 @@ void smp::register_network_stacks() {
     register_native_stack();
 }
 
-void smp::qs_deleter::operator()(smp_message_queue** qs) const {
-    for (unsigned i = 0; i < smp::count; i++) {
-        for (unsigned j = 0; j < smp::count; j++) {
-            qs[i][j].~smp_message_queue();
-        }
-        ::operator delete[](qs[i]);
-    }
-    delete[](qs);
-}
-
 void smp::configure(boost::program_options::variables_map configuration, reactor_config reactor_cfg)
 {
 #ifndef SEASTAR_NO_EXCEPTION_HACK
