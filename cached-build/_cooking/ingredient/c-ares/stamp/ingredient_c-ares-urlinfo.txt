@@ -1,0 +1,3 @@
+repository='external project URL'
+module='https://c-ares.haxx.se/download/c-ares-1.13.0.tar.gz'
+tag='MD5=d2e010b43537794d8bedfb562ae6bba2'

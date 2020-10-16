@@ -1,0 +1,40 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/ingredient_fmt-install"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/ingredient_fmt-install.rule"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-install.rule"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-build.rule"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-configure.rule"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-update.rule"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-patch.rule"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-download.rule"
+		},
+		{
+			"file" : "/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-mkdir.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"ingredient_fmt"
+		],
+		"name" : "ingredient_fmt-install"
+	}
+}

@@ -1,0 +1,12 @@
+# Target labels
+ ingredient_fmt
+# Source files and their labels
+/home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/ingredient_fmt-install
+/home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/ingredient_fmt-install.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-install.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-build.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-configure.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-update.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-patch.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-download.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/fmt/stamp/ingredient_fmt-mkdir.rule

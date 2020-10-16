@@ -1,0 +1,12 @@
+# Target labels
+ ingredient_c-ares
+# Source files and their labels
+/home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/ingredient_c-ares-install
+/home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/ingredient_c-ares-install.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/c-ares/stamp/ingredient_c-ares-install.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/c-ares/stamp/ingredient_c-ares-build.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/c-ares/stamp/ingredient_c-ares-configure.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/c-ares/stamp/ingredient_c-ares-update.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/c-ares/stamp/ingredient_c-ares-patch.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/c-ares/stamp/ingredient_c-ares-download.rule
+/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/ingredient/c-ares/stamp/ingredient_c-ares-mkdir.rule

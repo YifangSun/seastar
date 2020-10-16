@@ -1,0 +1,368 @@
+Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_19830 && [1/2] Building CXX object CMakeFiles/cmTC_19830.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_19830
+FAILED: cmTC_19830 
+: && /usr/bin/c++  -DCMAKE_HAVE_LIBC_PTHREAD   CMakeFiles/cmTC_19830.dir/src.cxx.o  -o cmTC_19830   && :
+CMakeFiles/cmTC_19830.dir/src.cxx.o: In function `main':
+src.cxx:(.text+0x2d): undefined reference to `pthread_create'
+src.cxx:(.text+0x39): undefined reference to `pthread_detach'
+src.cxx:(.text+0x4a): undefined reference to `pthread_join'
+src.cxx:(.text+0x5e): undefined reference to `pthread_atfork'
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_046e9 && [1/2] Building CXX object CMakeFiles/cmTC_046e9.dir/CheckFunctionExists.cxx.o
+[2/2] Linking CXX executable cmTC_046e9
+FAILED: cmTC_046e9 
+: && /usr/bin/c++  -DCHECK_FUNCTION_EXISTS=pthread_create   CMakeFiles/cmTC_046e9.dir/CheckFunctionExists.cxx.o  -o cmTC_046e9  -lpthreads && :
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+
+Performing C++ SOURCE FILE Test Concepts_FOUND failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_f28f9 && [1/2] Building CXX object CMakeFiles/cmTC_f28f9.dir/src.cxx.o
+FAILED: CMakeFiles/cmTC_f28f9.dir/src.cxx.o 
+/usr/bin/c++    -DConcepts_FOUND -fconcepts -o CMakeFiles/cmTC_f28f9.dir/src.cxx.o -c src.cxx
+c++: error: unrecognized command line option ‘-fconcepts’
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#if __cpp_concepts == 201507
+int main() { return 0; }
+#endif
+
+Performing C++ SOURCE FILE Test LinuxMembarrier_FOUND failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_f39c7 && [1/2] Building CXX object CMakeFiles/cmTC_f39c7.dir/src.cxx.o
+FAILED: CMakeFiles/cmTC_f39c7.dir/src.cxx.o 
+/usr/bin/c++    -DLinuxMembarrier_FOUND -fconcepts -o CMakeFiles/cmTC_f39c7.dir/src.cxx.o -c src.cxx
+c++: error: unrecognized command line option ‘-fconcepts’
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+extern "C" {
+#include <linux/membarrier.h>
+}
+
+int main() {
+    int x = MEMBARRIER_CMD_PRIVATE_EXPEDITED | MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED;
+    (void)x;
+}
+
+Performing C++ SOURCE FILE Test Sanitizers_ADDRESS_FOUND failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_48a4d && [1/2] Building CXX object CMakeFiles/cmTC_48a4d.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_48a4d
+FAILED: cmTC_48a4d 
+: && /usr/bin/c++  -DSanitizers_ADDRESS_FOUND -fsanitize=address   CMakeFiles/cmTC_48a4d.dir/src.cxx.o  -o cmTC_48a4d  /usr/lib64/liblz4.so && :
+/usr/bin/ld: cannot find /usr/lib64/libasan.so.0.0.0
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+int main() {}
+Performing C++ SOURCE FILE Test Sanitizers_UNDEFINED_BEHAVIOR_FOUND failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_e63d2 && [1/2] Building CXX object CMakeFiles/cmTC_e63d2.dir/src.cxx.o
+FAILED: CMakeFiles/cmTC_e63d2.dir/src.cxx.o 
+/usr/bin/c++    -DSanitizers_UNDEFINED_BEHAVIOR_FOUND -fsanitize=undefined -o CMakeFiles/cmTC_e63d2.dir/src.cxx.o -c src.cxx
+c++: error: unrecognized command line option ‘-fsanitize=undefined’
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+int main() {}
+Performing C++ SOURCE FILE Test Sanitizers_FIBER_SUPPORT failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_7a556 && [1/2] Building CXX object CMakeFiles/cmTC_7a556.dir/src.cxx.o
+FAILED: CMakeFiles/cmTC_7a556.dir/src.cxx.o 
+/usr/bin/c++    -DSanitizers_FIBER_SUPPORT -o CMakeFiles/cmTC_7a556.dir/src.cxx.o -c src.cxx
+src.cxx: In function ‘int main()’:
+src.cxx:9:36: error: ‘nullptr’ was not declared in this scope
+     __sanitizer_start_switch_fiber(nullptr, nullptr, 0);
+                                    ^
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#include <cstddef>
+
+extern "C" {
+    void __sanitizer_start_switch_fiber(void**, const void*, size_t);
+    void __sanitizer_finish_switch_fiber(void*, const void**, size_t*);
+}
+
+int main() {
+    __sanitizer_start_switch_fiber(nullptr, nullptr, 0);
+    __sanitizer_finish_switch_fiber(nullptr, nullptr, nullptr);
+}
+
+Performing C++ SOURCE FILE Test StdAtomic_EXPLICIT_LINK failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_e0b2b && [1/2] Building CXX object CMakeFiles/cmTC_e0b2b.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_e0b2b
+FAILED: cmTC_e0b2b 
+: && /usr/bin/c++  -DStdAtomic_EXPLICIT_LINK   CMakeFiles/cmTC_e0b2b.dir/src.cxx.o  -o cmTC_e0b2b  -latomic && :
+/usr/bin/ld: cannot find /usr/lib64/libatomic.so.1.0.0
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+int main() {}
+Performing C++ SOURCE FILE Test StdFilesystem_NO_EXPLICIT_LINK failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_49f2d && [1/2] Building CXX object CMakeFiles/cmTC_49f2d.dir/src.cxx.o
+FAILED: CMakeFiles/cmTC_49f2d.dir/src.cxx.o 
+/usr/bin/c++    -DStdFilesystem_NO_EXPLICIT_LINK -std=gnu++17 -o CMakeFiles/cmTC_49f2d.dir/src.cxx.o -c src.cxx
+c++: error: unrecognized command line option ‘-std=gnu++17’
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#if __cplusplus >= 201703L && __has_include(<filesystem>)
+#include <filesystem>
+namespace filesystem = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace filesystem = std::experimental::filesystem;
+#endif
+
+int main() {
+    filesystem::path path("/root");
+    (void)path;
+}
+
+Performing C++ SOURCE FILE Test StdFilesystem_STDCXXFS_LIBRARY failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_e0430 && [1/2] Building CXX object CMakeFiles/cmTC_e0430.dir/src.cxx.o
+FAILED: CMakeFiles/cmTC_e0430.dir/src.cxx.o 
+/usr/bin/c++    -DStdFilesystem_STDCXXFS_LIBRARY -std=gnu++17 -o CMakeFiles/cmTC_e0430.dir/src.cxx.o -c src.cxx
+c++: error: unrecognized command line option ‘-std=gnu++17’
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#if __cplusplus >= 201703L && __has_include(<filesystem>)
+#include <filesystem>
+namespace filesystem = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace filesystem = std::experimental::filesystem;
+#endif
+
+int main() {
+    filesystem::path path("/root");
+    (void)path;
+}
+
+Performing C++ SOURCE FILE Test StdFilesystem_CXXEXPERIMENTAL_LIBRARY failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_5d646 && [1/2] Building CXX object CMakeFiles/cmTC_5d646.dir/src.cxx.o
+FAILED: CMakeFiles/cmTC_5d646.dir/src.cxx.o 
+/usr/bin/c++    -DStdFilesystem_CXXEXPERIMENTAL_LIBRARY -std=gnu++17 -o CMakeFiles/cmTC_5d646.dir/src.cxx.o -c src.cxx
+c++: error: unrecognized command line option ‘-std=gnu++17’
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#if __cplusplus >= 201703L && __has_include(<filesystem>)
+#include <filesystem>
+namespace filesystem = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace filesystem = std::experimental::filesystem;
+#endif
+
+int main() {
+    filesystem::path path("/root");
+    (void)path;
+}
+
+Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_6cb2f && [1/2] Building CXX object CMakeFiles/cmTC_6cb2f.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_6cb2f
+FAILED: cmTC_6cb2f 
+: && /opt/rh/devtoolset-8/root/usr/bin/c++  -DCMAKE_HAVE_LIBC_PTHREAD   CMakeFiles/cmTC_6cb2f.dir/src.cxx.o  -o cmTC_6cb2f   && :
+CMakeFiles/cmTC_6cb2f.dir/src.cxx.o: In function `main':
+src.cxx:(.text+0x2d): undefined reference to `pthread_create'
+src.cxx:(.text+0x39): undefined reference to `pthread_detach'
+src.cxx:(.text+0x4a): undefined reference to `pthread_join'
+src.cxx:(.text+0x5e): undefined reference to `pthread_atfork'
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_d0474 && [1/2] Building CXX object CMakeFiles/cmTC_d0474.dir/CheckFunctionExists.cxx.o
+[2/2] Linking CXX executable cmTC_d0474
+FAILED: cmTC_d0474 
+: && /opt/rh/devtoolset-8/root/usr/bin/c++  -DCHECK_FUNCTION_EXISTS=pthread_create   CMakeFiles/cmTC_d0474.dir/CheckFunctionExists.cxx.o  -o cmTC_d0474  -lpthreads && :
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+
+Performing C++ SOURCE FILE Test Sanitizers_ADDRESS_FOUND failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_23572 && [1/2] Building CXX object CMakeFiles/cmTC_23572.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_23572
+FAILED: cmTC_23572 
+: && /opt/rh/devtoolset-8/root/usr/bin/c++  -DSanitizers_ADDRESS_FOUND -fsanitize=address   CMakeFiles/cmTC_23572.dir/src.cxx.o  -o cmTC_23572  /usr/lib64/liblz4.so && :
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: cannot find libasan_preinit.o: No such file or directory
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: cannot find -lasan
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+int main() {}
+Performing C++ SOURCE FILE Test Sanitizers_UNDEFINED_BEHAVIOR_FOUND failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_e1276 && [1/2] Building CXX object CMakeFiles/cmTC_e1276.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_e1276
+FAILED: cmTC_e1276 
+: && /opt/rh/devtoolset-8/root/usr/bin/c++  -DSanitizers_UNDEFINED_BEHAVIOR_FOUND -fsanitize=undefined   CMakeFiles/cmTC_e1276.dir/src.cxx.o  -o cmTC_e1276  /usr/lib64/liblz4.so && :
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: cannot find -lubsan
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+int main() {}
+Performing C++ SOURCE FILE Test Sanitizers_FIBER_SUPPORT failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_1caa3 && [1/2] Building CXX object CMakeFiles/cmTC_1caa3.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_1caa3
+FAILED: cmTC_1caa3 
+: && /opt/rh/devtoolset-8/root/usr/bin/c++  -DSanitizers_FIBER_SUPPORT   CMakeFiles/cmTC_1caa3.dir/src.cxx.o  -o cmTC_1caa3  /usr/lib64/liblz4.so && :
+CMakeFiles/cmTC_1caa3.dir/src.cxx.o: In function `main':
+src.cxx:(.text+0x14): undefined reference to `__sanitizer_start_switch_fiber'
+src.cxx:(.text+0x28): undefined reference to `__sanitizer_finish_switch_fiber'
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#include <cstddef>
+
+extern "C" {
+    void __sanitizer_start_switch_fiber(void**, const void*, size_t);
+    void __sanitizer_finish_switch_fiber(void*, const void**, size_t*);
+}
+
+int main() {
+    __sanitizer_start_switch_fiber(nullptr, nullptr, 0);
+    __sanitizer_finish_switch_fiber(nullptr, nullptr, nullptr);
+}
+
+Performing C++ SOURCE FILE Test StdAtomic_EXPLICIT_LINK failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_eaad7 && [1/2] Building CXX object CMakeFiles/cmTC_eaad7.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_eaad7
+FAILED: cmTC_eaad7 
+: && /opt/rh/devtoolset-8/root/usr/bin/c++  -DStdAtomic_EXPLICIT_LINK   CMakeFiles/cmTC_eaad7.dir/src.cxx.o  -o cmTC_eaad7  -latomic && :
+/opt/rh/devtoolset-8/root/usr/libexec/gcc/x86_64-redhat-linux/8/ld: cannot find -latomic
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+int main() {}
+Performing C++ SOURCE FILE Test StdFilesystem_NO_EXPLICIT_LINK failed with the following output:
+Change Dir: /home/work/feeds-seastar/seastar-20.05/seastar/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja-build cmTC_e49e2 && [1/2] Building CXX object CMakeFiles/cmTC_e49e2.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_e49e2
+FAILED: cmTC_e49e2 
+: && /opt/rh/devtoolset-8/root/usr/bin/c++  -DStdFilesystem_NO_EXPLICIT_LINK -std=gnu++17   CMakeFiles/cmTC_e49e2.dir/src.cxx.o  -o cmTC_e49e2   && :
+CMakeFiles/cmTC_e49e2.dir/src.cxx.o: In function `std::filesystem::path::path<char [6], std::filesystem::path>(char const (&) [6], std::filesystem::path::format)':
+src.cxx:(.text._ZNSt10filesystem4pathC2IA6_cS0_EERKT_NS0_6formatE[_ZNSt10filesystem4pathC5IA6_cS0_EERKT_NS0_6formatE]+0x5e): undefined reference to `std::filesystem::path::_M_split_cmpts()'
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#if __cplusplus >= 201703L && __has_include(<filesystem>)
+#include <filesystem>
+namespace filesystem = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace filesystem = std::experimental::filesystem;
+#endif
+
+int main() {
+    filesystem::path path("/root");
+    (void)path;
+}
+
