@@ -1,3 +1,0 @@
-repository='external project URL'
-module='https://github.com/fmtlib/fmt/archive/5.2.1.tar.gz'
-tag='MD5=eaf6e3c1b2f4695b9a612cedf17b509d'
