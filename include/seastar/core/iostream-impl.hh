@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <experimental/optional>
+
 #include <seastar/core/future-util.hh>
 #include <seastar/net/packet.hh>
 #include <seastar/core/future-util.hh>
