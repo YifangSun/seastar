@@ -64,7 +64,7 @@ public:
     virtual void reset_read_data_size() {
         _read_data_size = 0;
     }
-protected:
+public:
     size_t _read_data_size;
 };
 

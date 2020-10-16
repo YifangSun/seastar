@@ -553,7 +553,7 @@ posix_data_source_impl::get(size_t hint, char* user_buf) {
             return make_ready_future<temporary_buffer<char>>(std::move(temporary_buffer<char>()));
         });
     } else {
-        return _fd->read_some(static_cast<internal::buffer_allocator*>(this));
+        return _fd.read_some(static_cast<internal::buffer_allocator*>(this));
     }
 }
 

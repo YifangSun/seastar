@@ -294,7 +294,8 @@ public:
     virtual void reset_preemption_monitor() override;
     virtual void request_preemption() override;
     virtual void start_handling_signal() override;
-
+    
+    int get_fd() { return -1;};
     virtual pollable_fd_state_ptr
     make_pollable_fd_state(file_desc fd, pollable_fd::speculation speculate) override;
 };

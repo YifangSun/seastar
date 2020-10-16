@@ -763,13 +763,13 @@ static void print_with_backtrace(backtrace_buffer& buf) noexcept {
     buf.append_backtrace();
     buf.flush();
 }
-
+/*
 static void print_with_backtrace(const char* cause) noexcept {
     backtrace_buffer buf;
     buf.append(cause);
     print_with_backtrace(buf);
 }
-
+*/
 // Installs signal handler stack for current thread.
 // The stack remains installed as long as the returned object is kept alive.
 // When it goes out of scope the previous handler is restored.
@@ -3555,7 +3555,7 @@ void install_oneshot_signal_handler() {
     auto r = ::sigaction(Signal, &sa, nullptr);
     throw_system_error_on(r == -1);
 }
-
+/*
 static void sigsegv_action() noexcept {
     print_with_backtrace("Segmentation fault");
 }
@@ -3567,7 +3567,7 @@ static void sigabrt_action() noexcept {
 static void siguser_action() noexcept {
     print_with_backtrace("write queue is waking up");
 }
-
+*/
 void smp::qs_deleter::operator()(smp_message_queue** qs) const {
     for (unsigned i = 0; i < smp::count; i++) {
         for (unsigned j = 0; j < smp::count; j++) {
