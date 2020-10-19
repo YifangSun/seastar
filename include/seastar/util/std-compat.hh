@@ -21,21 +21,11 @@
 
 #pragma once
 
-#ifdef SEASTAR_USE_STD_OPTIONAL_VARIANT_STRINGVIEW
 #include <optional>
 #include <string_view>
 #include <variant>
-#else
-#include <optional>
-#include <string_view>
-#include <boost/variant.hpp>
-#endif
 
-#if __cplusplus >= 201703L && __has_include(<filesystem>)
 #include <filesystem>
-#else
-#include <filesystem>
-#endif
 
 
 #if __cplusplus >= 201703L && __has_include(<memory_resource>)
@@ -280,13 +270,7 @@ const U* get_if(const variant<Types...>* v) {
 
 #endif
 
-#if defined(__cpp_lib_filesystem)
 namespace filesystem = std::filesystem;
-#elif defined(__cpp_lib_experimental_filesystem)
-namespace filesystem = std::experimental::filesystem;
-#else
-#error No filesystem header detected.
-#endif
 
 using string_view = basic_string_view<char>;
 
