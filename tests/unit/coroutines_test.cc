@@ -75,7 +75,7 @@ SEASTAR_TEST_CASE(test_simple_coroutines) {
 }
 
 SEASTAR_TEST_CASE(test_abandond_coroutine) {
-    compat::optional<future<int>> f;
+    std::optional<future<int>> f;
     {
         auto p1 = promise<>();
         auto p2 = promise<>();
