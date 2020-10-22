@@ -3730,7 +3730,7 @@ public:
 
 void smp::register_network_stacks() {
     register_posix_stack();
-    register_native_stack();
+    //register_native_stack();
 }
 
 void smp::configure(boost::program_options::variables_map configuration, reactor_config reactor_cfg)
