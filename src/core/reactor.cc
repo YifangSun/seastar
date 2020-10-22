@@ -3442,6 +3442,7 @@ std::vector<reactor*> smp::_reactors;
 std::unique_ptr<smp_message_queue*[], smp::qs_deleter> smp::_qs;
 std::thread::id smp::_tmain;
 unsigned smp::count = 1;
+bool smp::poll_mode = false;
 bool smp::_using_dpdk;
 
 void smp::start_all_queues()
