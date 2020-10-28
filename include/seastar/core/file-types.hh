@@ -22,6 +22,7 @@
 #pragma once
 
 #include <fcntl.h>
+#include <linux/falloc.h>
 #include <sys/stat.h>
 #include <type_traits>
 

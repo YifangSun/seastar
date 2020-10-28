@@ -1,5 +1,5 @@
 
-#line 1 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+#line 1 "http/request_parser.rl"
 /*
 * This file is open source software, licensed to you under the terms
 * of the Apache License, Version 2.0 (the "License").  See the NOTICE file
@@ -33,11 +33,11 @@ namespace seastar {
 	using namespace httpd;
 	
 	
-	#line 34 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+	#line 34 "http/request_parser.rl"
 	
 	
 	
-	#line 99 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+	#line 99 "http/request_parser.rl"
 	
 	
 	class http_request_parser : public ragel_parser_base<http_request_parser> {
@@ -56,7 +56,7 @@ namespace seastar {
 		
 		
 		
-		#line 103 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+		#line 103 "http/request_parser.rl"
 		
 		public:
 		enum class state {
@@ -78,7 +78,7 @@ namespace seastar {
 				_fsm_cs = (int)start;
 			}
 			
-			#line 119 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+			#line 119 "http/request_parser.rl"
 			
 		}
 		char* parse(char* p, char* pe, char* eof) {
@@ -183,7 +183,7 @@ namespace seastar {
 				goto _out;
 				ctr0:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -205,7 +205,7 @@ namespace seastar {
 				}
 				ctr2:
 				{
-					#line 43 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 43 "http/request_parser.rl"
 					
 					_req->_method = str();
 				}
@@ -229,7 +229,7 @@ namespace seastar {
 				}
 				ctr4:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -253,7 +253,7 @@ namespace seastar {
 				}
 				ctr5:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -280,7 +280,7 @@ namespace seastar {
 				}
 				ctr8:
 				{
-					#line 47 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 47 "http/request_parser.rl"
 					
 					_req->_url = str();
 				}
@@ -354,7 +354,7 @@ namespace seastar {
 				}
 				ctr14:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -395,7 +395,7 @@ namespace seastar {
 				}
 				ctr17:
 				{
-					#line 51 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 51 "http/request_parser.rl"
 					
 					_req->_version = str();
 				}
@@ -459,7 +459,7 @@ namespace seastar {
 				}
 				ctr34:
 				{
-					#line 63 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 63 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] = std::move(_value);
 				}
@@ -467,7 +467,7 @@ namespace seastar {
 				goto st17;
 				ctr44:
 				{
-					#line 67 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 67 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] += sstring(" ") + std::move(_value);
 				}
@@ -475,12 +475,12 @@ namespace seastar {
 				goto st17;
 				ctr59:
 				{
-					#line 63 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 63 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] = std::move(_value);
 				}
 				{
-					#line 67 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 67 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] += sstring(" ") + std::move(_value);
 				}
@@ -499,7 +499,7 @@ namespace seastar {
 				}
 				ctr21:
 				{
-					#line 71 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 71 "http/request_parser.rl"
 					
 					done = true;
 					{p+= 1; _fsm_cs = 34; goto _out;}
@@ -516,7 +516,7 @@ namespace seastar {
 				}
 				ctr20:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -524,12 +524,12 @@ namespace seastar {
 				goto st18;
 				ctr35:
 				{
-					#line 63 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 63 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] = std::move(_value);
 				}
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -588,7 +588,7 @@ namespace seastar {
 				}
 				ctr22:
 				{
-					#line 55 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 55 "http/request_parser.rl"
 					
 					_field_name = str();
 				}
@@ -615,7 +615,7 @@ namespace seastar {
 				}
 				ctr28:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -623,7 +623,7 @@ namespace seastar {
 				goto st20;
 				ctr24:
 				{
-					#line 55 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 55 "http/request_parser.rl"
 					
 					_field_name = str();
 				}
@@ -650,7 +650,7 @@ namespace seastar {
 				}
 				ctr27:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -669,12 +669,12 @@ namespace seastar {
 				}
 				ctr29:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -682,7 +682,7 @@ namespace seastar {
 				goto st22;
 				ctr31:
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -752,12 +752,12 @@ namespace seastar {
 				}
 				ctr37:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -765,7 +765,7 @@ namespace seastar {
 				goto st24;
 				ctr33:
 				{
-					#line 63 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 63 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] = std::move(_value);
 				}
@@ -773,12 +773,12 @@ namespace seastar {
 				goto st24;
 				ctr43:
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
 				{
-					#line 67 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 67 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] += sstring(" ") + std::move(_value);
 				}
@@ -786,17 +786,17 @@ namespace seastar {
 				goto st24;
 				ctr58:
 				{
-					#line 63 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 63 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] = std::move(_value);
 				}
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
 				{
-					#line 67 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 67 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] += sstring(" ") + std::move(_value);
 				}
@@ -823,7 +823,7 @@ namespace seastar {
 				}
 				ctr36:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -831,7 +831,7 @@ namespace seastar {
 				goto st25;
 				ctr40:
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -858,12 +858,12 @@ namespace seastar {
 				}
 				ctr38:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -871,7 +871,7 @@ namespace seastar {
 				goto st26;
 				ctr41:
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -952,12 +952,12 @@ namespace seastar {
 				}
 				ctr45:
 				{
-					#line 67 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 67 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] += sstring(" ") + std::move(_value);
 				}
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -965,17 +965,17 @@ namespace seastar {
 				goto st28;
 				ctr60:
 				{
-					#line 63 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 63 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] = std::move(_value);
 				}
 				{
-					#line 67 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 67 "http/request_parser.rl"
 					
 					_req->_headers[_field_name] += sstring(" ") + std::move(_value);
 				}
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -1037,7 +1037,7 @@ namespace seastar {
 				}
 				ctr49:
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -1045,12 +1045,12 @@ namespace seastar {
 				goto st29;
 				ctr46:
 				{
-					#line 55 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 55 "http/request_parser.rl"
 					
 					_field_name = str();
 				}
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -1080,7 +1080,7 @@ namespace seastar {
 				}
 				ctr48:
 				{
-					#line 55 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 55 "http/request_parser.rl"
 					
 					_field_name = str();
 				}
@@ -1088,12 +1088,12 @@ namespace seastar {
 				goto st30;
 				ctr52:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -1120,7 +1120,7 @@ namespace seastar {
 				}
 				ctr51:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
@@ -1128,7 +1128,7 @@ namespace seastar {
 				goto st31;
 				ctr55:
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -1155,12 +1155,12 @@ namespace seastar {
 				}
 				ctr53:
 				{
-					#line 39 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 39 "http/request_parser.rl"
 					
 					g.mark_start(p);
 				}
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -1168,7 +1168,7 @@ namespace seastar {
 				goto st32;
 				ctr56:
 				{
-					#line 59 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+					#line 59 "http/request_parser.rl"
 					
 					_value = str();
 				}
@@ -1286,7 +1286,7 @@ namespace seastar {
 				_out: {}
 			}
 			
-			#line 132 "/home/work/feeds-seastar/seastar-20.05/seastar/src/http/request_parser.rl"
+			#line 132 "http/request_parser.rl"
 			
 			#ifdef __clang__
 			#pragma clang diagnostic pop
