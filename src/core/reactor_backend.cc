@@ -18,7 +18,7 @@
 /*
  * Copyright 2019 ScyllaDB
  */
-#include "core/reactor_backend.hh"
+#include <seastar/core/reactor_backend.hh>
 #include "core/thread_pool.hh"
 #include "core/syscall_result.hh"
 #include <seastar/core/print.hh>

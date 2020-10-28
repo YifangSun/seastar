@@ -39,7 +39,6 @@
 #include <seastar/core/temporary_buffer.hh>
 #include <seastar/core/scattered_message.hh>
 #include <seastar/util/std-compat.hh>
-#include <seastar/util/rwlock.hh>
 
 namespace seastar {
 
@@ -64,7 +63,7 @@ public:
     virtual void reset_read_data_size() {
         _read_data_size = 0;
     }
-protected:
+public:
     size_t _read_data_size;
 };
 

@@ -53,7 +53,6 @@
 #include <seastar/core/scheduling_specific.hh>
 #include <seastar/util/log.hh>
 #include "core/file-impl.hh"
-#include "core/reactor_backend.hh"
 #include "core/syscall_result.hh"
 #include "core/thread_pool.hh"
 #include "syscall_work_queue.hh"
@@ -3557,6 +3556,7 @@ void install_oneshot_signal_handler() {
     throw_system_error_on(r == -1);
 }
 
+/*
 static void sigsegv_action() noexcept {
     print_with_backtrace("Segmentation fault");
 }
@@ -3568,6 +3568,7 @@ static void sigabrt_action() noexcept {
 static void siguser_action() noexcept {
     print_with_backtrace("write queue is waking up");
 }
+ */
 
 void smp::qs_deleter::operator()(smp_message_queue** qs) const {
     for (unsigned i = 0; i < smp::count; i++) {
@@ -3731,16 +3732,6 @@ public:
 void smp::register_network_stacks() {
     register_posix_stack();
     register_native_stack();
-}
-
-void smp::qs_deleter::operator()(smp_message_queue** qs) const {
-    for (unsigned i = 0; i < smp::count; i++) {
-        for (unsigned j = 0; j < smp::count; j++) {
-            qs[i][j].~smp_message_queue();
-        }
-        ::operator delete[](qs[i]);
-    }
-    delete[](qs);
 }
 
 void smp::configure(boost::program_options::variables_map configuration, reactor_config reactor_cfg)

@@ -104,7 +104,7 @@ public:
     }
 };
 
-class posix_data_source_impl final : public data_source_impl, private internal::buffer_allocator {
+class posix_data_source_impl final : public data_source_impl, public internal::buffer_allocator {
     compat::polymorphic_allocator<char>* _buffer_allocator;
     pollable_fd _fd;
     connected_socket_input_stream_config _config;

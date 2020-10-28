@@ -25,8 +25,8 @@
 
 #include <seastar/core/future-util.hh>
 #include <seastar/net/packet.hh>
-#include <seastar/core/future-util.hh>
 #include <seastar/util/variant_utils.hh>
+#include <seastar/util/std-compat.hh>
 
 namespace seastar {
 

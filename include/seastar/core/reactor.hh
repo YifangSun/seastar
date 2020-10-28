@@ -27,6 +27,7 @@
 #include <seastar/core/cacheline.hh>
 #include <seastar/core/circular_buffer_fixed_capacity.hh>
 #include <seastar/core/idle_cpu_handler.hh>
+#include <seastar/core/reactor_backend.hh>
 #include <memory>
 #include <type_traits>
 #include <sys/epoll.h>
@@ -41,6 +42,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <iostream>
 #include <thread>
 #include <system_error>
 #include <chrono>
@@ -140,9 +142,6 @@ void register_network_stack(sstring name, boost::program_options::options_descri
 class thread_pool;
 class smp;
 
-class reactor_backend_selector;
-
-class reactor_backend;
 
 namespace internal {
 
@@ -620,8 +619,6 @@ public:
                 f.get();
                 return seastar::make_ready_future<>();
             } catch (...) {
-                // disconnect when exception
-                std::cerr << "Write error, disconnect the connection." << std::endl;
                 chan->set_channel_broken();
 
                 // ev_del is a param that will be ignored by EPOLL_CTL_DEL
@@ -630,7 +627,7 @@ public:
                 // a non-null pointer in event, even though this argument is ignored.
                 // so we use a empty param here.
                 struct epoll_event ev_del;
-                if (epoll_ctl(_backend.get_fd(), EPOLL_CTL_DEL, out->get_fd(), &ev_del) < 0) {
+                if (epoll_ctl(_backend->get_fd(), EPOLL_CTL_DEL, out->get_fd(), &ev_del) < 0) {
                     std::cerr << "Epoll delete fd error." << std::endl;
                     return make_ready_future();
                 }
