@@ -3442,6 +3442,7 @@ std::vector<reactor*> smp::_reactors;
 std::unique_ptr<smp_message_queue*[], smp::qs_deleter> smp::_qs;
 std::thread::id smp::_tmain;
 unsigned smp::count = 1;
+bool smp::poll_mode = false;
 bool smp::_using_dpdk;
 
 void smp::start_all_queues()
@@ -3731,7 +3732,6 @@ public:
 
 void smp::register_network_stacks() {
     register_posix_stack();
-    register_native_stack();
 }
 
 void smp::configure(boost::program_options::variables_map configuration, reactor_config reactor_cfg)
