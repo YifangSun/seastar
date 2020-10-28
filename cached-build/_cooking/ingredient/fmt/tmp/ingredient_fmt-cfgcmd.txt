@@ -1,0 +1,1 @@
+cmd='/usr/local/bin/cmake;-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>;-DCMAKE_PREFIX_PATH=/home/work/feeds-seastar/seastar-20.05/seastar/build/_cooking/installed;-DCMAKE_BUILD_TYPE=Release;-DFMT_DOC=OFF;-DFMT_TEST=OFF;<SOURCE_DIR>'
