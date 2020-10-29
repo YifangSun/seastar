@@ -46,7 +46,7 @@ class reactor;
 // FIXME: merge it with storage context below. At this point the
 // main thing to do is unify the iocb list
 struct aio_general_context {
-    explicit aio_general_context(size_t nr);f
+    explicit aio_general_context(size_t nr);
     ~aio_general_context();
     internal::linux_abi::aio_context_t io_context{};
     std::unique_ptr<internal::linux_abi::iocb*[]> iocbs;
